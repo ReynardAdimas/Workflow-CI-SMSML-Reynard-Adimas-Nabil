@@ -1,0 +1,13 @@
+name: ci-env 
+channels:
+  - defaults 
+dependencies:
+  - python=3.12.12 
+  - pip 
+  - pip:
+    - pandas 
+    - scikit-learn 
+    - mlflow 
+    - matplotlib 
+    - seaborn 
+    - joblib 
