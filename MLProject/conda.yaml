@@ -11,4 +11,3 @@ dependencies:
     - matplotlib 
     - seaborn 
     - joblib 
-    - seaborn

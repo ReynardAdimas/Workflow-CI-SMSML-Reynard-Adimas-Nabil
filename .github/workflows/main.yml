@@ -20,7 +20,7 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        pip install mlflow pandas scikit-learn joblib virtualenv
+        pip install mlflow pandas scikit-learn joblib virtualenv seaborn matplotlib
 
     - name: Run MLflow Project (Training)
       run: |
