@@ -62,61 +62,75 @@ def train():
             }
         }
     } 
-    print("Start Training")
+    print("Start Training") 
+    best_acc = 0.0 
+    best_model_obj = None 
+    best_model_name = ""
+    best_params = {}
+    best_metrics = {}
+    best_y_pred = None 
+
     for model_name, config in models_config.items():
-        print(f"\nTraining {model_name}")
-        with mlflow.start_run() as run:
-            grid = GridSearchCV(estimator=config['model'], param_grid=config['params'], cv=3, n_jobs=-1, verbose=1)
-            grid.fit(X_train, y_train)
+        print(f"\nTraining {model_name}") 
 
-            best_model = grid.best_estimator_
-            best_params = grid.best_params_ 
+        grid = GridSearchCV(estimator=config['model'], param_grid=config['params'], cv=3, n_jobs=-1, verbose=1)
+        grid.fit(X_train, y_train) 
 
-            y_pred = best_model.predict(X_test)
-            acc = accuracy_score(y_test, y_pred)
-            prec = precision_score(y_test, y_pred, average='weighted')
-            rec = recall_score(y_test, y_pred, average='weighted')
-            f1 = f1_score(y_test, y_pred, average='weighted')
+        curr_best_model = grid.best_estimator_ 
+        y_pred = curr_best_model.predict(X_test)
+        acc = accuracy_score(y_test, y_pred) 
 
-            print(f"Best Params : {best_params}")
-            print(f"Accuracy : {acc}")
+        print(f"Accuracy: {acc}")
 
-            mlflow.log_params(best_params)
-            mlflow.log_param("algorithm", model_name)
+        if acc > best_acc:
+            best_acc = acc
+            best_model_obj = curr_best_model 
+            best_model_name = model_name
+            best_params = grid.best_params_
+            best_y_pred = y_pred 
 
-            mlflow.log_metric("accuracy", acc)
-            mlflow.log_metric("precision", prec)
-            mlflow.log_metric("recall", rec)
-            mlflow.log_metric("f1_score", f1) 
+            best_metrics['precision'] = precision_score(y_test, y_pred, average='weighted')
+            best_metrics['recall'] = recall_score(y_test, y_pred, average='weighted')
+            best_metrics['f1'] = f1_score(y_test, y_pred, average='weighted') 
 
-            cm = confusion_matrix(y_test, y_pred)
-            plt.figure(figsize=(6,5))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-            plt.title(f'Confusion Matrix - {model_name}')
-            plt.ylabel('Actual')
-            plt.xlabel('Predicted')
+    print(f"\n Best Model : {best_model_name}, acc : {best_acc}") 
 
-            cm_file = f"cm_{model_name}.png"
-            plt.savefig(cm_file)
-            plt.close()
+    mlflow.log_param("best_alorithm", best_model_name)
+    mlflow.log_params(best_params)
 
-            # model_file = f"model_{model_name}.joblib"
-            # dump(best_model, model_file)
-             
-            mlflow.sklearn.log_model(
-                sk_model=best_model, 
+    mlflow.log_metric("accuracy", best_acc)
+    mlflow.log_metric("precision", best_metrics['precision'])
+    mlflow.log_metric("recall", best_metrics["precision"])
+    mlflow.log_metric("f1_score", best_metrics['f1']) 
+
+    cm = confusion_matrix(y_test, best_y_pred)
+    plt.figure(figsize=(6,5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f'Confusion Matrix - {best_model_name}')
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    cm_file = "confusion matrix.png"
+    plt.savefig(cm_file)
+    plt.close()
+
+    mlflow.log_artifact(cm_file)
+
+    if os.path.exists(cm_file): os.remove(cm_file) 
+
+    mlflow.sklearn.log_model(
+                sk_model=best_model_obj, 
                 artifact_path="model",
-                registered_model_name=f"Model_{model_name}"
-            )
+                registered_model_name=f"Model_{best_model_name}"
+            ) 
+    
+    run_id = mlflow.active_run().info.run_id 
+    print(f"Run Id Logged: {run_id}")
 
-            mlflow.log_artifact(cm_file)
-            # mlflow.log_artifact(model_file)
-
-            if os.path.exists(cm_file): os.remove(cm_file)
-            #if os.path.exists(model_file) : os.remove(model_file) 
-            with open("last_run_id.txt", "w") as f:
-                f.write(run.info.run_id)
+    with open("last_run_id.txt", "w") as f:
+        f.write(run_id) 
+    
     print("Done")
+
 
 if __name__ == "__main__":
     train()
