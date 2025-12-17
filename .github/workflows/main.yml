@@ -25,8 +25,7 @@ jobs:
     - name: Run MLflow Project (Training)
       run: |
         cd MLProject
-        # Menjalankan modelling.py melalui mekanisme MLflow Project
-        mlflow run . --no-conda --env-manager=local
+        mlflow run . --env-manager=local
         
     - name: Upload MLflow Artifacts
       uses: actions/upload-artifact@v4
