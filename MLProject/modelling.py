@@ -65,7 +65,7 @@ def train():
     print("Start Training")
     for model_name, config in models_config.items():
         print(f"\nTraining {model_name}")
-        with mlflow.start_run(run_name=f"Tuning_{model_name}") as run:
+        with mlflow.start_run() as run:
             grid = GridSearchCV(estimator=config['model'], param_grid=config['params'], cv=3, n_jobs=-1, verbose=1)
             grid.fit(X_train, y_train)
 
