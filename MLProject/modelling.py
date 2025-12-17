@@ -30,8 +30,8 @@ def load_data():
     return X_train, y_train, X_test, y_test 
 
 def train():
-    mlflow.set_tracking_uri("file:./mlruns")
-    mlflow.set_experiment("CI Experiment")
+    # mlflow.set_tracking_uri("file:./mlruns")
+    # mlflow.set_experiment("CI Experiment")
     X_train, y_train, X_test, y_test = load_data()
     models_config = {
         "RandomForest":{
@@ -100,7 +100,7 @@ def train():
 
     mlflow.log_metric("accuracy", best_acc)
     mlflow.log_metric("precision", best_metrics['precision'])
-    mlflow.log_metric("recall", best_metrics["precision"])
+    mlflow.log_metric("recall", best_metrics['recall'])
     mlflow.log_metric("f1_score", best_metrics['f1']) 
 
     cm = confusion_matrix(y_test, best_y_pred)
@@ -109,7 +109,7 @@ def train():
     plt.title(f'Confusion Matrix - {best_model_name}')
     plt.ylabel('Actual')
     plt.xlabel('Predicted')
-    cm_file = "confusion matrix.png"
+    cm_file = "confusion-matrix.png"
     plt.savefig(cm_file)
     plt.close()
 
